@@ -9,22 +9,17 @@ let score = 0;
 let level = 1;
 
 // spawn fruit
-function spawnFruit() 
-{
-  fruits.push
-  (
-    {
+function spawnFruit() {
+  fruits.push({
     x: Math.random() * canvas.width,
     y: canvas.height,
-    radius: 20,
+    radius: 25,
     speed: 2 + level
-    }
-  );
+  });
 }
 
 // draw fruits
-function drawFruits() 
-{
+function drawFruits() {
   ctx.fillStyle = "red";
   fruits.forEach(f => {
     ctx.beginPath();
@@ -34,40 +29,53 @@ function drawFruits()
 }
 
 // update fruits
-function updateFruits() 
-{
+function updateFruits() {
   fruits.forEach(f => {
     f.y -= f.speed;
   });
 }
 
-// slicing logic (mouse)
-canvas.addEventListener("mousemove", (e) => 
-{
+//  COMMON SLICE FUNCTION (used for both mouse + touch)
+function sliceFruit(x, y) {
   fruits = fruits.filter(f => {
-    let dx = f.x - e.clientX;
-    let dy = f.y - e.clientY;
-    let distance = Math.sqrt(dx*dx + dy*dy);
+    let dx = f.x - x;
+    let dy = f.y - y;
+    let distance = Math.sqrt(dx * dx + dy * dy);
 
-    if (distance < f.radius) 
-    {
+    if (distance < f.radius) {
       score++;
       updateScore();
       return false;
     }
     return true;
   });
+}
+
+//  MOUSE SUPPORT
+canvas.addEventListener("mousemove", (e) => {
+  sliceFruit(e.clientX, e.clientY);
 });
 
-// update score UI
-function updateScore() 
-{
+//  TOUCH SUPPORT (IMPORTANT FIX)
+canvas.addEventListener("touchmove", (e) => {
+  e.preventDefault(); // stops screen scrolling
+
+  const rect = canvas.getBoundingClientRect();
+  const touch = e.touches[0];
+
+  const x = touch.clientX - rect.left;
+  const y = touch.clientY - rect.top;
+
+  sliceFruit(x, y);
+}, { passive: false });
+
+// update score
+function updateScore() {
   document.getElementById("score").innerText = "Score: " + score;
 }
 
 // level system
-function checkLevel() 
-{
+function checkLevel() {
   if (score >= level * 10) {
     level++;
     alert("Level " + level);
@@ -75,8 +83,7 @@ function checkLevel()
 }
 
 // game loop
-function gameLoop() 
-{
+function gameLoop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   drawFruits();
@@ -88,4 +95,3 @@ function gameLoop()
 
 setInterval(spawnFruit, 1000);
 gameLoop();
-
